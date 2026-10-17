@@ -29,7 +29,7 @@ class PolicyLimiter:
         allow_network: bool = False,
         forbidden_patterns: Optional[List[str]] = None
     ):
-        self.allowed_workspace = os.path.abspath(allowed_workspace)
+        self.allowed_workspace = os.path.normpath(os.path.abspath(allowed_workspace)).replace("\\", "/")
         self.allow_network = allow_network
         self.forbidden_patterns = forbidden_patterns or DANGEROUS_COMMAND_PATTERNS
 
@@ -37,9 +37,9 @@ class PolicyLimiter:
         """Check if a path is inside or equal to the allowed workspace."""
         # Normalize relative path assuming relative to workspace root
         if not path.startswith("/"):
-            normalized = os.path.abspath(os.path.join(self.allowed_workspace, path))
+            normalized = os.path.normpath(os.path.join(self.allowed_workspace, path)).replace("\\", "/")
         else:
-            normalized = os.path.abspath(path)
+            normalized = os.path.normpath(os.path.abspath(path)).replace("\\", "/")
         
         # Check prefix match
         return normalized == self.allowed_workspace or normalized.startswith(self.allowed_workspace + "/")

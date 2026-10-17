@@ -68,7 +68,9 @@ class Task(BaseModel):
     """Specification of the software engineering coding task."""
     task_id: str = Field(..., description="Unique task identifier")
     instruction: str = Field(..., description="Detailed instructions or issue description")
+    repository: Optional[str] = Field(default=None, description="Path to repository or repository identifier")
     context: Optional[str] = Field(default=None, description="Optional background context or repository notes")
+    test_command: Optional[str] = Field(default=None, description="Command to execute repository tests")
 
 
 class AgentResult(BaseModel):
@@ -82,3 +84,6 @@ class AgentResult(BaseModel):
     trajectory_path: Optional[str] = Field(default=None, description="Path to structured JSONL trajectory log")
     total_tokens: Optional[int] = Field(default=None, description="Accumulated token count across steps")
     total_cost_usd: Optional[float] = Field(default=None, description="Estimated LLM API cost in USD if available")
+    final_diff: Optional[str] = Field(default=None, description="Unified git diff or recorded file modifications")
+    test_result: Optional[Dict[str, Any]] = Field(default=None, description="Execution outcome of repository tests")
+    runtime_cleaned_up: bool = Field(default=True, description="Whether runtime environment was cleanly stopped")

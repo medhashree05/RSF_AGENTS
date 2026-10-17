@@ -1,6 +1,8 @@
 from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 import os
 import re
+import copy
+import difflib
 from abc import ABC, abstractmethod
 
 from src.agent.models import Action, Observation
@@ -15,6 +17,14 @@ class Runtime(Protocol):
     The agent layer NEVER interacts with the host filesystem or spawns host processes.
     All environment interactions must pass through this interface.
     """
+
+    def start(self, repository: Optional[str] = None, task: Optional[Any] = None) -> None:
+        """Initialize and start the isolated runtime environment for a repository/task."""
+        ...
+
+    def stop(self) -> None:
+        """Clean up and tear down the isolated runtime environment."""
+        ...
 
     def execute(self, action: Action) -> Observation:
         """
@@ -32,7 +42,7 @@ class Runtime(Protocol):
         """Execute a shell command inside the isolated runtime environment."""
         ...
 
-    def read_file(self, path: str) -> str:
+    def read_file(self, path: str, start_line: Optional[int] = None, end_line: Optional[int] = None) -> str:
         """Read text content of a file inside the isolated runtime environment."""
         ...
 
@@ -46,6 +56,14 @@ class Runtime(Protocol):
 
     def list_files(self, directory: str = ".") -> List[str]:
         """List files relative to the workspace directory."""
+        ...
+
+    def get_changes(self) -> str:
+        """Return unified git diff or formatted summary of modified workspace files."""
+        ...
+
+    def run_tests(self, command: Optional[str] = None) -> ExecutionResult:
+        """Run the repository test suite and return execution results."""
         ...
 
 
@@ -67,11 +85,44 @@ class FakeRuntime:
         if initial_files:
             for p, content in initial_files.items():
                 self.files[self._normalize_path(p)] = content
+        self.initial_files: Dict[str, str] = copy.deepcopy(self.files)
 
         self.mock_commands: Dict[str, ExecutionResult] = mock_commands or {}
         self.default_shell_output = default_shell_output
         self.executed_actions: List[Action] = []
         self.executed_commands: List[str] = []
+        self.is_started: bool = False
+        self.is_stopped: bool = False
+        self.repository: Optional[str] = None
+        self.current_task: Optional[Any] = None
+
+    def start(self, repository: Optional[str] = None, task: Optional[Any] = None) -> None:
+        """Initialize runtime state for a given repository and task."""
+        self.is_started = True
+        self.is_stopped = False
+        self.repository = repository
+        self.current_task = task
+
+        # If a real directory is provided and no initial files were supplied, load them in-memory
+        if repository and os.path.isdir(repository) and not self.initial_files:
+            for root, dirs, filenames in os.walk(repository):
+                dirs[:] = [d for d in dirs if not d.startswith(".") and d not in ("__pycache__", "venv", ".venv")]
+                for fname in filenames:
+                    if fname.startswith("."):
+                        continue
+                    full_p = os.path.join(root, fname)
+                    rel_p = os.path.relpath(full_p, repository).replace("\\", "/")
+                    try:
+                        with open(full_p, "r", encoding="utf-8", errors="replace") as f:
+                            self.files[self._normalize_path(rel_p)] = f.read()
+                    except Exception:
+                        pass
+            self.initial_files = copy.deepcopy(self.files)
+
+    def stop(self) -> None:
+        """Mark runtime as stopped and tear down virtual state."""
+        self.is_stopped = True
+        self.is_started = False
 
     def _normalize_path(self, path: str) -> str:
         path = path.strip()
@@ -97,11 +148,19 @@ class FakeRuntime:
         norm = self._normalize_path(path)
         return norm in self.files
 
-    def read_file(self, path: str) -> str:
+    def read_file(self, path: str, start_line: Optional[int] = None, end_line: Optional[int] = None) -> str:
         norm = self._normalize_path(path)
         if norm not in self.files:
             raise FileNotFoundError(f"File not found: {path}")
-        return self.files[norm]
+        content = self.files[norm]
+        if start_line is not None or end_line is not None:
+            lines = content.splitlines()
+            s = start_line if start_line is not None else 1
+            e = end_line if end_line is not None else len(lines)
+            s = max(1, s)
+            selected = lines[s - 1:e]
+            return "\n".join(f"{s + i}: {line}" for i, line in enumerate(selected))
+        return content
 
     def write_file(self, path: str, content: str) -> None:
         norm = self._normalize_path(path)
@@ -245,3 +304,34 @@ class FakeRuntime:
             return Observation(success=False, output="", error=str(pe))
         except Exception as e:
             return Observation(success=False, output="", error=f"Runtime error executing '{action_type}': {e}")
+
+    def get_changes(self) -> str:
+        """Compute unified git-style diff of all modified in-memory files."""
+        diff_chunks: List[str] = []
+        all_keys = sorted(set(self.initial_files.keys()) | set(self.files.keys()))
+        for key in all_keys:
+            orig = self.initial_files.get(key, "").splitlines(keepends=True)
+            curr = self.files.get(key, "").splitlines(keepends=True)
+            if orig != curr:
+                diff = difflib.unified_diff(
+                    orig,
+                    curr,
+                    fromfile=f"a/{key}",
+                    tofile=f"b/{key}",
+                )
+                diff_chunks.extend(diff)
+        return "".join(diff_chunks)
+
+    def run_tests(self, command: Optional[str] = None) -> ExecutionResult:
+        """Execute test suite command inside the virtual runtime."""
+        cmd = command
+        if not cmd and self.current_task:
+            if hasattr(self.current_task, "test_command") and self.current_task.test_command:
+                cmd = self.current_task.test_command
+        if not cmd:
+            cmd = "pytest"
+        return self.execute_shell(cmd)
+
+
+# Alias MockRuntime to FakeRuntime for flexibility and consistent naming
+MockRuntime = FakeRuntime

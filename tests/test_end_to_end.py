@@ -2,6 +2,8 @@ import pytest
 from src.mock_agent import MockAgent
 from src.orchestrator import ReversibilityOrchestrator
 
+pytestmark = pytest.mark.docker
+
 
 @pytest.fixture
 def orchestrator():

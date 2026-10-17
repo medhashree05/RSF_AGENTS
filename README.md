@@ -1,138 +1,148 @@
-# Autonomous Reversibility Prototype
+# Autonomous Reversibility Prototype: Baseline Coding Agent & Transactional Sandbox
 
-An end-to-end safety control loop for detecting and reversing anti-patterns or unauthorized workspace modifications in LLM-assisted code generation.
+[![Tests](https://img.shields.io/badge/pytest-68%20passed-brightgreen.svg)]()
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue.svg)]()
+[![Docker](https://img.shields.io/badge/docker-containerized%20sandbox-orange.svg)]()
+[![SWE--agent](https://img.shields.io/badge/architecture-SWE--agent%20NeurIPS%202024-purple.svg)]()
 
----
-
-## 📐 Project Architecture
-
-The system enforces a **Safety Control Loop** across five modular stages:
-
-1. **Policy Limiter (`src/policy.py`)**: Evaluates incoming tool calls against predefined policy rules (workspace directory scope, network access permissions).
-2. **Transactional Sandbox (`src/sandbox.py`)**: Executes tools in an isolated Docker container with rollback capability.
-3. **Ground-Truth Auditor (`src/auditor.py`)**: Inspects container changes using `docker diff` and `strace` logs to determine actual file mutations and network events.
-4. **Scope Comparator (`src/comparator.py`)**: Compares declared tool scope against observed ground-truth effects to detect undeclared side-effects.
-5. **Commit / Rollback & Feedback (`src/orchestrator.py`, `src/feedback.py`)**: Commits state on scope match or rolls back container state on mismatch/violation, producing feedback for the agent.
+An end-to-end framework implementing a **SWE-agent-style baseline coding agent** and an isolated **Docker transactional sandbox** for detecting and reversing anti-patterns or unauthorized workspace modifications in LLM-assisted code generation.
 
 ---
 
-## 🛠️ Environment Setup & Pyright Configuration
+## 📐 System Architecture
 
-### Module Import Resolution (`Cannot find module src.models`)
+The project is structured into two complementary layers:
 
-#### Problem Overview
-When using Python LSPs / static type checkers (such as Pyright/Basedpyright), the tool by default infers `src/` as the primary import root for projects using standard `src` layout. As a result, imports structured as `from src.models import ...` caused resolution errors (`Cannot find module src.models`) because Pyright looked for `src/src/models.py`.
+### 1. Baseline Layer (Agent & Runtime Boundary)
+Inspired by **SWE-agent (Yang et al., NeurIPS 2024)**:
+* **Coding Agent (`src/agent/agent.py`)**: Turn-based ReAct loop managing prompt history, action parsing, budget enforcement, and guaranteed cleanup via `try ... finally: runtime.stop()`.
+* **Agent-Computer Interface (ACI) (`src/agent/aci/`)**: Minimal, bounded operations (`search`, `read_file`, `edit_file`, `run_shell`, `submit`).
+* **Runtime Abstraction (`src/agent/runtime.py`)**: Abstract protocol decoupling the agent from the execution environment.
+* **Docker Runtime (`src/runtime/docker_runtime.py`)**: Sandboxed container runtime that copies local repositories into `/workspace`, runs tests, computes git diffs, and isolates execution from the host.
+* **Mock Runtime (`src/agent/runtime.py:FakeRuntime`)**: Zero-dependency, in-memory virtual runtime for fast, deterministic offline testing.
 
-#### Resolution
-The project configuration in `pyproject.toml` includes `extraPaths = ["."]` under `[tool.pyright]`, instructing the LSP to include the project root in module lookup paths:
+### 2. Safety Control Loop (Proposed Extension)
+* **Policy Limiter (`src/policy.py`)**: Static gatekeeper validating file paths and rejecting dangerous commands prior to execution.
+* **Transactional Sandbox (`src/sandbox.py`)**: Executes tool calls in Docker with state promotion (`commit_state`) and state discard (`rollback_state`).
+* **Ground-Truth Auditor (`src/auditor.py`)**: Inspects container changes via `docker diff` and syscall tracking via `strace` log parsing.
+* **Scope Comparator (`src/comparator.py`)**: Compares agent-declared scope against observed effects to detect undeclared file writes, unexpected reads, or unauthorized network calls.
+* **Orchestrator & Feedback (`src/orchestrator.py`, `src/feedback.py`)**: Coordinates execution, triggering commits on match or rollbacks on violations, and returning structured feedback to the agent.
 
-```toml
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["."]
+---
 
-[tool.pyright]
-extraPaths = ["."]
+## 🚀 Quickstart & CLI Usage
+
+### 1. Build the Docker Sandbox Image
+Before running with Docker container isolation, build the local sandbox image:
+
+```bash
+docker build -t btp-sandbox:latest .
+```
+
+### 2. Run the Baseline Coding Agent (`run_agent.py`)
+
+#### A. In Docker Sandbox (Isolated Container Mode)
+Runs the agent against the target repository inside a real Docker container, executing tests and producing a `git diff`:
+
+```bash
+python run_agent.py --repo ./fixtures/sample_repo --task ./tasks/task_01.json --runtime docker
+```
+
+#### B. In Offline Virtual Mode (Zero Docker / No API Key Required)
+Runs completely offline using `MockRuntime` and `MockLLMProvider` in under 1 second:
+
+```bash
+python run_agent.py --repo ./fixtures/sample_repo --task ./tasks/task_01.json --runtime mock
+```
+
+#### C. With Live LLM Provider (OpenAI / OpenRouter / Ollama / vLLM)
+Export your API key:
+
+```bash
+# On Linux/macOS
+export OPENAI_API_KEY="your-api-key"
+
+# On Windows PowerShell
+$env:OPENAI_API_KEY="your-api-key"
+```
+
+Execute with `--provider openai`:
+
+```bash
+python run_agent.py \
+  --repo ./fixtures/sample_repo \
+  --task ./tasks/task_01.json \
+  --runtime docker \
+  --provider openai \
+  --model gpt-4o-mini
 ```
 
 ---
 
-## 🧪 Running Tests
+## 🧪 Running Automated Tests
 
-To run the test suite using the project's virtual environment:
+Run the full test suite (all 68 tests across unit, mock, and live Docker suites):
 
 ```bash
-# Run pytest with virtual environment python
-.venv/bin/pytest
+pytest
+```
+
+To run offline unit tests only (without requiring Docker):
+
+```bash
+pytest -m "not docker"
 ```
 
 ---
 
 ## 📁 Directory Structure
 
-```
-├── pyproject.toml       # Project dependencies & tool configurations (pytest, pyright)
+```text
+├── Dockerfile                   # Ubuntu 22.04 base sandbox image (git, strace, python3, pytest)
+├── pyproject.toml               # Project dependencies and tool settings
+├── requirements.txt             # Core dependencies (pydantic, docker, pytest)
+├── run_agent.py                 # CLI entrypoint for baseline agent execution
+├── tasks/
+│   └── task_01.json             # Sample coding task specification
+├── fixtures/
+│   └── sample_repo/             # Disposable repository fixture with buggy code and tests
+├── docs/                        # Architecture and contract documentation
+│   ├── architecture.md          # Baseline component architecture and ReAct control flow
+│   ├── implementation_plan.md   # Implementation plan and gap analysis
+│   ├── integration_contract.md  # Docker runtime integration contract
+│   ├── agent_architecture.md    # SWE-agent ACI detailed specification
+│   └── implementation_deviations.md # Comparison against published SWE-agent paper
 ├── src/
-│   ├── agent/           # Member 1: SWE-agent-style Coding Agent & ACI
-│   │   ├── aci/         # ACI commands (search, read, edit, shell, submit)
-│   │   ├── agent.py     # Main CodingAgent interaction loop
-│   │   ├── config.py    # AgentConfig data models
-│   │   ├── history.py   # Bounded conversation history manager
-│   │   ├── llm.py       # LLM provider abstraction & MockLLMProvider
-│   │   ├── logger.py    # Trajectory JSONL logger & secret redaction
-│   │   ├── models.py    # Action, Observation, Task, AgentResult
-│   │   ├── parser.py    # Robust action JSON parser
-│   │   ├── prompts/     # Agent system prompt markdown
-│   │   └── runtime.py   # Runtime protocol & FakeRuntime for offline tests
-│   ├── auditor.py       # Container audit engine (docker diff & strace inspection)
-│   ├── comparator.py    # Ground-truth vs declared scope comparator
-│   ├── demo.py          # Prototype demo execution script
-│   ├── feedback.py      # Structured feedback generator for policy/scope decisions
-│   ├── logger.py        # Episode logger for safety control loop audits
-│   ├── mock_agent.py    # Simulated agent scenarios
-│   ├── models.py        # Core Pydantic data models
-│   ├── orchestrator.py  # Central safety control loop orchestrator
-│   ├── policy.py        # Static policy limiter gate
-│   ├── sandbox.py       # Docker transactional container sandbox
-│   └── tools/           # Workspace tool abstractions
-├── docs/                # Architecture and deviation documentation
-│   ├── agent_architecture.md
-│   └── implementation_deviations.md
-└── tests/               # Unit and end-to-end integration tests
+│   ├── agent/                   # Baseline Coding Agent & ACI
+│   │   ├── aci/                 # ACI commands (search, read_file, edit_file, run_shell, submit)
+│   │   ├── agent.py             # Main CodingAgent interaction loop & lifecycle
+│   │   ├── config.py            # Agent configuration models
+│   │   ├── history.py           # Bounded conversation history manager
+│   │   ├── llm.py               # LLM provider abstraction & OpenAILikeProvider
+│   │   ├── logger.py            # Trajectory JSONL logger & secret redaction
+│   │   ├── models.py            # Action, Observation, Task, AgentResult
+│   │   ├── parser.py            # Action JSON parser with error recovery
+│   │   ├── prompts/             # Agent system prompt
+│   │   └── runtime.py           # Runtime protocol & MockRuntime / FakeRuntime
+│   ├── runtime/
+│   │   └── docker_runtime.py    # DockerRuntime implementing Runtime protocol
+│   ├── auditor.py               # Ground-Truth Auditor (docker diff & strace)
+│   ├── comparator.py            # Declared scope vs observed effects comparator
+│   ├── feedback.py              # Feedback generator for agent self-correction
+│   ├── logger.py                # Episode logger for safety audits
+│   ├── mock_agent.py            # Deterministic agent scenarios for safety benchmarks
+│   ├── models.py                # Core data models (ToolCall, DeclaredScope, EpisodeLog)
+│   ├── orchestrator.py          # Central safety loop orchestrator
+│   ├── policy.py                # Static policy limiter gate
+│   └── sandbox.py               # Docker transactional sandbox with commit/rollback
+└── tests/                       # Unit and end-to-end integration tests (68 tests)
+```
 
 ---
 
-## 🤖 Member 1: Coding Agent & ACI Usage
+## 📚 Technical Documentation
 
-The baseline agent operates iteratively through a specialized Agent-Computer Interface (ACI) inspired by **SWE-agent (Yang et al., NeurIPS 2024)**. Every action generated by the agent declares its intended scope (`write`, `read`, `network`) to interface with the safety control loop.
-
-### Offline Mock-Mode Execution (No API Key or Docker Required)
-
-You can run the agent completely offline using `MockLLMProvider` and `FakeRuntime`:
-
-```python
-from src.agent import CodingAgent, AgentConfig, Task, MockLLMProvider, FakeRuntime
-
-# 1. Define initial virtual repository files
-runtime = FakeRuntime(initial_files={
-    "src/calc.py": "def add(a, b): return a - b\n",
-    "tests/test_calc.py": "def test_add(): assert add(2, 2) == 4\n"
-})
-
-# 2. Provide scripted or deterministic model responses
-llm = MockLLMProvider(responses=[
-    # Turn 1: Read the buggy file
-    '{"action": "read_file", "args": {"path": "src/calc.py"}, "declared_scope": {"read": ["src/calc.py"]}}',
-    # Turn 2: Surgically edit the file
-    '{"action": "edit_file", "args": {"path": "src/calc.py", "old_str": "a - b", "new_str": "a + b"}, "declared_scope": {"write": ["src/calc.py"]}}',
-    # Turn 3: Submit finished task
-    '{"action": "submit", "args": {"summary": "Fixed add function to use addition operator."}}'
-])
-
-# 3. Configure and execute agent
-config = AgentConfig(max_steps=10, trajectory_dir="logs/trajectories")
-agent = CodingAgent(llm=llm, runtime=runtime, config=config)
-
-task = Task(task_id="task_calc_01", instruction="Fix bug in src/calc.py add function")
-result = agent.run(task)
-
-print(f"Task Submitted: {result.submitted}")
-print(f"Status: {result.status}")
-print(f"Steps Taken: {result.steps_taken}")
-print(f"Trajectory Log: {result.trajectory_path}")
-```
-
-### Live Provider Configuration
-
-To connect with live API endpoints, export your API key:
-
-```bash
-export OPENAI_API_KEY="your-api-key-here"
-```
-
-Then instantiate `OpenAILikeProvider`:
-
-```python
-from src.agent.llm import OpenAILikeProvider
-llm = OpenAILikeProvider(model_name="gpt-4o-mini")
-```
+* [Baseline Architecture Documentation](docs/architecture.md)
+* [Implementation Plan & Phasing](docs/implementation_plan.md)
+* [Docker Runtime Integration Contract](docs/integration_contract.md)
+* [SWE-agent Comparison & Deviations](docs/implementation_deviations.md)

@@ -12,10 +12,12 @@ class ScopeComparator:
         self.workspace_dir = workspace_dir
 
     def normalize_path(self, path: str) -> str:
-        """Normalize file path to absolute path relative to workspace."""
+        """Normalize file path to absolute path relative to workspace with forward slashes."""
         if not path.startswith("/"):
-            return os.path.abspath(os.path.join(self.workspace_dir, path))
-        return os.path.abspath(path)
+            norm = os.path.abspath(os.path.join(self.workspace_dir, path))
+        else:
+            norm = os.path.abspath(path)
+        return os.path.normpath(norm).replace("\\", "/")
 
     def is_path_declared_or_parent(self, path: str, declared_write_set: Set[str]) -> bool:
         """Check if path matches a declared write path or is a parent directory of one."""

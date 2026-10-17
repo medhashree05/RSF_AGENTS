@@ -16,6 +16,9 @@ dependencies = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+    "docker: marks tests requiring an active Docker daemon"
+]
 
 [tool.pyright]
 extraPaths = ["."]

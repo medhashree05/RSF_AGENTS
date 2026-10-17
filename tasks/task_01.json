@@ -1,0 +1,7 @@
+{
+  "task_id": "task_calc_01",
+  "instruction": "Fix the division by zero bug in src/calculator.py: divide(a, b) should raise a ValueError when b == 0 instead of ZeroDivisionError. Verify with pytest.",
+  "repository": "fixtures/sample_repo",
+  "test_command": "pytest tests/test_calculator.py",
+  "context": "The calculator module provides basic arithmetic operations. The test suite expects ValueError with message 'Cannot divide by zero' when dividing by zero."
+}

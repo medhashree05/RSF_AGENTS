@@ -2,6 +2,8 @@ import pytest
 from src.sandbox import TransactionalSandbox
 from src.models import ToolCall, DeclaredScope
 
+pytestmark = pytest.mark.docker
+
 
 def test_sandbox_execution_and_rollback():
     sandbox = TransactionalSandbox()
