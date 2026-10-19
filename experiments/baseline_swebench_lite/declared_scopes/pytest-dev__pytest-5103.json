@@ -1,0 +1,50 @@
+{
+  "task_id": "pytest-dev__pytest-5103",
+  "repository": "pytest-dev/pytest",
+  "base_commit": "10ca84ffc56c2dd2d9dc4bd71b7b898e083500cd",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "_pytest/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "src/_pytest/**/*.py",
+      "testing/**/*.py"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "testing/test_assertrewrite.py::TestAssertionRewrite::test_unroll_expression"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "_pytest/...",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

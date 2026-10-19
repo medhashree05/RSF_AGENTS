@@ -1,0 +1,52 @@
+{
+  "task_id": "django__django-11815",
+  "repository": "django/django",
+  "base_commit": "e02f67ef2d03d48128e7a118bf75f0418e24e8ac",
+  "problem_type": "bug_fix",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "django/**/*.py",
+      "tests/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "**/*"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "test_serialize_class_based_validators (migrations.test_writer.WriterTests)",
+      "test_serialize_enums (migrations.test_writer.WriterTests)"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "django/**/*.py",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

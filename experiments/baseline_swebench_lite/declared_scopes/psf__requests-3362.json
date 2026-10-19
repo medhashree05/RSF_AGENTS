@@ -1,0 +1,51 @@
+{
+  "task_id": "psf__requests-3362",
+  "repository": "psf/requests",
+  "base_commit": "36453b95b13079296776d11b09cab2567ea3e703",
+  "problem_type": "bug_fix",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "requests/**/*.py",
+      "tests/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "**/*"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "tests/test_requests.py::TestRequests::test_response_decode_unicode"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "requests/**/*.py",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

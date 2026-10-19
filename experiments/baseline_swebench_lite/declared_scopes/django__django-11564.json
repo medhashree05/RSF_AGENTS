@@ -1,0 +1,52 @@
+{
+  "task_id": "django__django-11564",
+  "repository": "django/django",
+  "base_commit": "580e644f24f1c5ae5b94784fb73a9953a178fd26",
+  "problem_type": "bug_fix",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "django/**/*.py",
+      "tests/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "**/*"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "test_add_script_name_prefix (settings_tests.tests.MediaURLStaticURLPrefixTest)",
+      "test_not_prefixed (settings_tests.tests.MediaURLStaticURLPrefixTest)"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "django/**/*.py",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

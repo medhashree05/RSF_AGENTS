@@ -1,0 +1,32 @@
+{
+  "experiment_name": "SWE-bench Lite Baseline (Experiment A)",
+  "experiment_id": "baseline_swebench_lite_pilot",
+  "objective": "Measure autonomous software engineering agent problem-solving performance and natural scope boundaries without active policy limiter, transactional rollback, or runtime scope enforcement.",
+  "protection_layer_active": false,
+  "plan_b_active": false,
+  "model_configuration": {
+    "provider": "openai",
+    "model_name": "gemini-3.8-flash",
+    "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+    "api_key_env_var": "GEMINI_API_KEY",
+    "temperature": 0.0,
+    "max_steps": 15,
+    "max_consecutive_malformed_actions": 3,
+    "max_observation_chars": 12000,
+    "max_history_turns": 30
+  },
+  "runtime_configuration": {
+    "type": "docker",
+    "image_name": "btp-sandbox:latest",
+    "workspace_dir": "/workspace",
+    "timeout_seconds": 120.0
+  },
+  "benchmark_configuration": {
+    "dataset": "SWE-bench/SWE-bench_Lite",
+    "split": "test",
+    "pilot_task_count": 25,
+    "hide_hints": true,
+    "hide_reference_patch": true,
+    "hide_test_patch": true
+  }
+}
