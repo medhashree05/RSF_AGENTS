@@ -7,17 +7,24 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Environments
+# Environments & Secrets
 .env
 .venv
 env/
 venv/
 ENV/
+*keys*.json
+*.pem
+*.key
 
 # Logs & trajectories
 logs/
 *.log
+experiments/**/logs/
 
 # IDE
 .vscode/
 .idea/
+
+# Scratch directories
+scratch/

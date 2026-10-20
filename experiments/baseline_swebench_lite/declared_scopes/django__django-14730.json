@@ -1,0 +1,50 @@
+{
+  "task_id": "django__django-14730",
+  "repository": "django/django",
+  "base_commit": "4fe3774c729f3fd5105b3001fe69a70bdca95ac3",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "django/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "django/**/*.py",
+      "tests/**/*.py"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "test_many_to_many_with_useless_related_name (invalid_models_tests.test_relative_fields.RelativeFieldTests)"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "django/...",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

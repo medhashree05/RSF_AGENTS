@@ -1,0 +1,28 @@
+diff --git a/pyproject.toml b/pyproject.toml
+index 95a6e10..638edfa 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -1,4 +1,10 @@
+-[project]
++[tool.poetry]
++[tool.poetry]
++name = "flask"
++version = "1.0.0"
++description = ""
++version = "1.0.0"
++description = ""
+ name = "Flask"
+ description = "A simple framework for building complex web applications."
+ readme = "README.rst"
+@@ -91,4 +97,4 @@ module = [
+     "cryptography.*",
+     "importlib_metadata",
+ ]
+-ignore_missing_imports = true
++ignore_missing_imports = true
+\ No newline at end of file
+
+
+# Untracked files:
+ M pyproject.toml
+?? flask/

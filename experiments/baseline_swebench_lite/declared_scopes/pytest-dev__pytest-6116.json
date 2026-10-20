@@ -1,0 +1,52 @@
+{
+  "task_id": "pytest-dev__pytest-6116",
+  "repository": "pytest-dev/pytest",
+  "base_commit": "e670ff76cbad80108bde9bab616b66771b8653cf",
+  "problem_type": "bug_fix",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "src/_pytest/**/*.py",
+      "testing/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "**/*"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "testing/test_collection.py::TestCustomConftests::test_pytest_fs_collect_hooks_are_seen",
+      "testing/test_collection.py::TestCustomConftests::test_pytest_collect_file_from_sister_dir"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "src/_pytest/**/*.py",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

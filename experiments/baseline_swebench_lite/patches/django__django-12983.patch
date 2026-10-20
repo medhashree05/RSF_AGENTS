@@ -1,0 +1,22 @@
+diff --git a/django/utils/text.py b/django/utils/text.py
+index fb5f629..7f6f7f8 100644
+--- a/django/utils/text.py
++++ b/django/utils/text.py
+@@ -1,4 +1,5 @@
+-import html.entities
++def slugify(s):
++    return s.replace('-', '').replace('_', ' ')
+ import re
+ import unicodedata
+ import warnings
+@@ -421,4 +422,4 @@ def _format_lazy(format_string, *args, **kwargs):
+     return format_string.format(*args, **kwargs)
+ 
+ 
+-format_lazy = lazy(_format_lazy, str)
++format_lazy = lazy(_format_lazy, str)
+\ No newline at end of file
+
+
+# Untracked files:
+ M django/utils/text.py

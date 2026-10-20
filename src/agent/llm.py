@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import urllib.request
 import urllib.error
 from abc import ABC, abstractmethod
@@ -148,11 +149,14 @@ class OpenAILikeProvider(LLMProvider):
         api_key_env_var: str = "OPENAI_API_KEY",
         base_url: str = "https://api.openai.com/v1/chat/completions",
         timeout: float = 60.0,
+        min_interval: float = 4.2,
     ):
         self.model_name = model_name
         self.api_key_env_var = api_key_env_var
         self.base_url = base_url
         self.timeout = timeout
+        self.min_interval = min_interval
+        self._last_call_time: float = 0.0
 
     def get_model_name(self) -> str:
         return self.model_name
@@ -160,10 +164,24 @@ class OpenAILikeProvider(LLMProvider):
     def generate(self, messages: List[Dict[str, str]], **kwargs) -> LLMResponse:
         api_key = os.getenv(self.api_key_env_var)
         if not api_key:
+            try:
+                from dotenv import load_dotenv
+                load_dotenv()
+                api_key = os.getenv(self.api_key_env_var)
+            except Exception:
+                pass
+
+        if not api_key:
             raise LLMAuthError(
                 f"Missing API key in environment variable '{self.api_key_env_var}'. "
                 f"Set it or switch to MockLLMProvider for offline execution."
             )
+
+        # Enforce rate-limit throttle to stay comfortably below 15 RPM
+        now = time.time()
+        elapsed = now - self._last_call_time
+        if elapsed < self.min_interval:
+            time.sleep(self.min_interval - elapsed)
 
         payload = {
             "model": self.model_name,
@@ -173,42 +191,265 @@ class OpenAILikeProvider(LLMProvider):
         data = json.dumps(payload).encode("utf-8")
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {api_key}"
+            "Authorization": f"Bearer {api_key}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        }
+        if "generativelanguage" in self.base_url or "googleapis" in self.base_url:
+            headers["x-goog-api-key"] = api_key
+
+        max_retries = 5
+        backoff = 3.0
+
+        for attempt in range(max_retries + 1):
+            self._last_call_time = time.time()
+            req = urllib.request.Request(self.base_url, data=data, headers=headers, method="POST")
+
+            try:
+                with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+                    status_code = resp.getcode()
+                    raw_body = resp.read().decode("utf-8")
+                    res_json = json.loads(raw_body)
+                    choices = res_json.get("choices", [])
+                    if not choices:
+                        raise LLMError(f"No choices returned by LLM: {res_json}")
+                    msg = choices[0].get("message", {})
+                    content = msg.get("content") or msg.get("refusal") or ""
+                    
+                    usage_raw = res_json.get("usage", {})
+                    usage = TokenUsage(
+                        prompt_tokens=usage_raw.get("prompt_tokens", 0),
+                        completion_tokens=usage_raw.get("completion_tokens", 0),
+                        total_tokens=usage_raw.get("total_tokens", 0)
+                    ) if usage_raw else None
+
+                    return LLMResponse(
+                        content=content,
+                        model=res_json.get("model", self.model_name),
+                        usage=usage,
+                        cost_usd=None,  # Price catalog not hardcoded; left explicitly None
+                        raw=res_json
+                    )
+            except urllib.error.HTTPError as e:
+                if e.code == 429 and attempt < max_retries:
+                    retry_wait = 20.0 * (attempt + 1)
+                    header_val = e.headers.get("Retry-After") if hasattr(e, "headers") else None
+                    if header_val:
+                        try:
+                            retry_wait = max(float(header_val), retry_wait)
+                        except (ValueError, TypeError):
+                            pass
+                    time.sleep(retry_wait)
+                    continue
+                elif e.code in (503, 502, 500) and attempt < max_retries:
+                    time.sleep(backoff)
+                    backoff *= 2
+                    continue
+                elif e.code == 429:
+                    raise LLMRateLimitError(f"HTTP 429 Rate Limit exceeded: {e.reason}")
+                elif e.code in (401, 403):
+                    raise LLMAuthError(f"HTTP {e.code} Authentication error: {e.reason}")
+                else:
+                    raise LLMError(f"HTTP {e.code} error from LLM provider: {e.reason}")
+            except urllib.error.URLError as e:
+                err_str = str(e.reason).lower() if hasattr(e, "reason") else str(e).lower()
+                is_timeout = isinstance(getattr(e, "reason", None), TimeoutError) or "timed out" in err_str or "timeout" in err_str
+                if attempt < max_retries and is_timeout:
+                    time.sleep(backoff)
+                    backoff *= 2
+                    continue
+                if is_timeout:
+                    raise LLMTimeoutError(f"Request to LLM provider timed out: {e.reason}")
+                raise LLMError(f"Network error contacting LLM provider: {e.reason}")
+            except Exception as e:
+                err_str = str(e).lower()
+                is_timeout = isinstance(e, TimeoutError) or "timed out" in err_str or "timeout" in err_str
+                if attempt < max_retries and is_timeout:
+                    time.sleep(backoff)
+                    backoff *= 2
+                    continue
+                if is_timeout:
+                    raise LLMTimeoutError(f"Request to LLM provider timed out: {e}")
+                raise LLMError(f"Unexpected error in LLM provider: {e}")
+
+
+class GeminiNativeProvider(LLMProvider):
+    """
+    Native Google Generative Language API provider.
+    Directly connects to Google's v1beta generateContent endpoint.
+    """
+    _key_pool: List[str] = []
+    _key_index: int = 0
+
+    @classmethod
+    def _load_pool(cls) -> List[str]:
+        keys_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "experiments", "baseline_swebench_lite", "gemini_keys.json")
+        if os.path.exists(keys_file):
+            try:
+                with open(keys_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if isinstance(data, list) and data:
+                        cls._key_pool = data
+            except Exception:
+                pass
+        return cls._key_pool
+
+    @classmethod
+    def get_active_key(cls, preferred: Optional[str] = None) -> str:
+        pool = cls._load_pool()
+        if preferred and preferred in pool:
+            idx = pool.index(preferred)
+            if idx >= cls._key_index:
+                cls._key_index = idx
+        if cls._key_index < len(pool):
+            return pool[cls._key_index]
+        return pool[-1]
+
+    @classmethod
+    def advance_key(cls) -> Optional[str]:
+        cls._key_index += 1
+        pool = cls._load_pool()
+        if cls._key_index < len(pool):
+            new_key = pool[cls._key_index]
+            os.environ["GEMINI_API_KEY"] = new_key
+            print(f"[Gemini] Quota hit. Switched permanently to key #{cls._key_index + 1} of {len(pool)}", flush=True)
+            return new_key
+        print("[Gemini] ALL KEYS EXHAUSTED in key pool!", flush=True)
+        return None
+
+    def __init__(
+        self,
+        model_name: str = "gemini-3.5-flash",
+        api_key: Optional[str] = None,
+        api_key_env_var: str = "GEMINI_API_KEY",
+        timeout: float = 60.0,
+        min_interval: float = 12.0,
+    ):
+        self.model_name = model_name
+        self.api_key = api_key
+        self.api_key_env_var = api_key_env_var
+        self.timeout = timeout
+        self.min_interval = min_interval
+        self._last_call_time: float = 0.0
+
+    def get_model_name(self) -> str:
+        return self.model_name
+
+    def generate(self, messages: List[Dict[str, str]], **kwargs) -> LLMResponse:
+        key = self.get_active_key(self.api_key or os.getenv(self.api_key_env_var))
+        if not key:
+            try:
+                from dotenv import load_dotenv
+                load_dotenv()
+                key = self.get_active_key(os.getenv(self.api_key_env_var))
+            except Exception:
+                pass
+        if not key:
+            raise LLMAuthError(f"Missing Gemini API key in env var '{self.api_key_env_var}'")
+
+        now = time.time()
+        elapsed = now - self._last_call_time
+        if elapsed < self.min_interval:
+            time.sleep(self.min_interval - elapsed)
+
+        system_parts = []
+        contents = []
+
+        for m in messages:
+            role = m.get("role", "user")
+            text = m.get("content", "")
+            if not text:
+                continue
+            if role == "system":
+                system_parts.append({"text": text})
+            else:
+                gemini_role = "model" if role == "assistant" else "user"
+                if contents and contents[-1]["role"] == gemini_role:
+                    contents[-1]["parts"][0]["text"] += "\n\n" + text
+                else:
+                    contents.append({"role": gemini_role, "parts": [{"text": text}]})
+
+        if contents and contents[0]["role"] == "model":
+            contents.insert(0, {"role": "user", "parts": [{"text": "Continue task."}]})
+
+        if not contents:
+            contents.append({"role": "user", "parts": [{"text": "Execute task."}]})
+
+        payload: Dict[str, Any] = {"contents": contents}
+        if system_parts:
+            payload["system_instruction"] = {"parts": system_parts}
+
+        temp = kwargs.get("temperature", 0.0)
+        payload["generationConfig"] = {
+            "temperature": temp,
         }
 
-        req = urllib.request.Request(self.base_url, data=data, headers=headers, method="POST")
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={key}"
+        data = json.dumps(payload).encode("utf-8")
+        headers = {
+            "Content-Type": "application/json",
+            "X-goog-api-key": key,
+        }
 
-        try:
-            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
-                status_code = resp.getcode()
-                raw_body = resp.read().decode("utf-8")
-                res_json = json.loads(raw_body)
-                
-                content = res_json["choices"][0]["message"]["content"]
-                usage_raw = res_json.get("usage", {})
-                usage = TokenUsage(
-                    prompt_tokens=usage_raw.get("prompt_tokens", 0),
-                    completion_tokens=usage_raw.get("completion_tokens", 0),
-                    total_tokens=usage_raw.get("total_tokens", 0)
-                ) if usage_raw else None
+        max_retries = 3
+        backoff = 2.0
 
-                return LLMResponse(
-                    content=content,
-                    model=res_json.get("model", self.model_name),
-                    usage=usage,
-                    cost_usd=None,  # Price catalog not hardcoded; left explicitly None
-                    raw=res_json
-                )
-        except urllib.error.HTTPError as e:
-            if e.code == 429:
-                raise LLMRateLimitError(f"HTTP 429 Rate Limit exceeded: {e.reason}")
-            elif e.code in (401, 403):
-                raise LLMAuthError(f"HTTP {e.code} Authentication error: {e.reason}")
-            else:
-                raise LLMError(f"HTTP {e.code} error from LLM provider: {e.reason}")
-        except urllib.error.URLError as e:
-            if isinstance(e.reason, TimeoutError) or "timed out" in str(e.reason).lower():
-                raise LLMTimeoutError(f"Request to LLM provider timed out: {e.reason}")
-            raise LLMError(f"Network error contacting LLM provider: {e.reason}")
-        except Exception as e:
-            raise LLMError(f"Unexpected error in LLM provider: {e}")
+        for attempt in range(max_retries + 1):
+            self._last_call_time = time.time()
+            req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+
+            try:
+                with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+                    raw_body = resp.read().decode("utf-8")
+                    res_json = json.loads(raw_body)
+                    candidates = res_json.get("candidates", [])
+                    if not candidates:
+                        raise LLMError(f"No candidates returned: {res_json}")
+                    cand = candidates[0]
+                    parts = cand.get("content", {}).get("parts", [])
+                    content = "".join(p.get("text", "") for p in parts)
+
+                    usage_meta = res_json.get("usageMetadata", {})
+                    usage = TokenUsage(
+                        prompt_tokens=usage_meta.get("promptTokenCount", 0),
+                        completion_tokens=usage_meta.get("candidatesTokenCount", 0),
+                        total_tokens=usage_meta.get("totalTokenCount", 0),
+                    ) if usage_meta else None
+
+                    return LLMResponse(
+                        content=content,
+                        model=self.model_name,
+                        usage=usage,
+                        cost_usd=None,
+                        raw=res_json,
+                    )
+            except urllib.error.HTTPError as e:
+                err_body = e.read().decode("utf-8", errors="replace")
+                if e.code in (503, 502) and "gemini-3.1-flash-lite" not in url:
+                    # Automatic fallback to lighter flash model on high demand spikes
+                    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key={key}"
+                    time.sleep(1.0)
+                    continue
+                elif e.code == 429:
+                    if "PerMinute" in err_body or ("retryDelay" in err_body and "PerDay" not in err_body):
+                        print("[Gemini] Free-tier 5 RPM limit reached. Cooling down for 30s...", flush=True)
+                        time.sleep(30.0)
+                        continue
+                    next_key = self.advance_key()
+                    if next_key:
+                        key = next_key
+                        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent?key={key}"
+                        headers["X-goog-api-key"] = key
+                        time.sleep(1.0)
+                        continue
+                    raise LLMRateLimitError(f"Gemini Rate Limit (429): {err_body}")
+                elif e.code in (401, 403):
+                    raise LLMAuthError(f"Gemini Auth Error ({e.code}): {err_body}")
+                else:
+                    raise LLMError(f"Gemini HTTP {e.code}: {err_body}")
+            except Exception as e:
+                if attempt < max_retries:
+                    time.sleep(backoff * (attempt + 1))
+                    continue
+                raise LLMError(f"Gemini request failed: {e}")
+
+

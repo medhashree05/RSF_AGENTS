@@ -1,0 +1,77 @@
+diff --git a/tests/migrations/test_operations.py b/tests/migrations/test_operations.py
+index cfd28b1..f2cfebf 100644
+--- a/tests/migrations/test_operations.py
++++ b/tests/migrations/test_operations.py
+@@ -2980,22 +2980,13 @@ class OperationTests(OperationTestBase):
+ 
+         new_state = project_state.clone()
+         operation.state_forwards(app_label, new_state)
+-        # Rename index.
+-        with connection.schema_editor() as editor:
+-            operation.database_forwards(app_label, editor, project_state, new_state)
+-        self.assertIndexNameExists(table_name, "new_pony_test_idx")
+-        # Reverse is a no-op.
+-        with connection.schema_editor() as editor, self.assertNumQueries(0):
+-            operation.database_backwards(app_label, editor, new_state, project_state)
+-        self.assertIndexNameExists(table_name, "new_pony_test_idx")
+-        # Deconstruction.
+-        definition = operation.deconstruct()
+-        self.assertEqual(definition[0], "RenameIndex")
+-        self.assertEqual(definition[1], [])
+-        self.assertEqual(
+-            definition[2],
+-            {
+-                "model_name": "Pony",
++    # Re-apply renaming.
++    with connection.schema_editor() as editor:
++    operation.database_forwards(app_label, editor, project_state, new_state)
++    self.assertIndexNameExists(table_name, "new_pony_test_idx")
++    # Deconstruction.
++    definition = operation.deconstruct()
++    self.assertEqual(definition[0], "RenameIndex")
+                 "new_name": "new_pony_test_idx",
+                 "old_fields": ("weight", "pink"),
+             },
+@@ -3006,29 +2997,14 @@ class OperationTests(OperationTestBase):
+         project_state = self.set_up_test_model(app_label)
+         operation = migrations.RenameIndex(
+             "Pony", new_name="new_pony_test_idx", old_fields=("weight", "pink")
+-        )
+-        new_state = project_state.clone()
+-        operation.state_forwards(app_label, new_state)
+-        msg = "Found wrong number (0) of indexes for test_rninuui_pony(weight, pink)."
+-        with connection.schema_editor() as editor:
+-            with self.assertRaisesMessage(ValueError, msg):
+-                operation.database_forwards(app_label, editor, project_state, new_state)
+-
++    msg = "RenameIndex.old_name and old_fields are mutually exclusive."
+     def test_add_index_state_forwards(self):
+         project_state = self.set_up_test_model("test_adinsf")
+         index = models.Index(fields=["pink"], name="test_adinsf_pony_pink_idx")
+         old_model = project_state.apps.get_model("test_adinsf", "Pony")
+         new_state = project_state.clone()
+ 
+-        operation = migrations.AddIndex("Pony", index)
+-        operation.state_forwards("test_adinsf", new_state)
+-        new_model = new_state.apps.get_model("test_adinsf", "Pony")
+-        self.assertIsNot(old_model, new_model)
+-
+-    def test_remove_index_state_forwards(self):
+-        project_state = self.set_up_test_model("test_rminsf")
+-        index = models.Index(fields=["pink"], name="test_rminsf_pony_pink_idx")
+-        migrations.AddIndex("Pony", index).state_forwards("test_rminsf", project_state)
++    operation = migrations.AddIndexConcurrently('Pony', index)
+         old_model = project_state.apps.get_model("test_rminsf", "Pony")
+         new_state = project_state.clone()
+ 
+@@ -5329,4 +5305,4 @@ class FieldOperationTests(SimpleTestCase):
+         )
+         self.assertIs(
+             operation.references_field("Through", "second", "migrations"), True
+-        )
++        )
+\ No newline at end of file
+
+
+# Untracked files:
+ M tests/migrations/test_operations.py

@@ -1,0 +1,47 @@
+diff --git a/sympy/__init__.py b/sympy/__init__.py
+index b5246e2..7a30c7d 100644
+--- a/sympy/__init__.py
++++ b/sympy/__init__.py
+@@ -18,6 +18,10 @@
+ try:
+     import mpmath
+ except ImportError:
++    pass
++import mpmath
++except ImportError:
++    pass
+     raise ImportError("SymPy now depends on mpmath as an external library. "
+     "See http://docs.sympy.org/latest/install.html#mpmath for more information.")
+ 
+@@ -91,4 +95,4 @@ def __sympy_debug():
+ # This is slow to import:
+ #import abc
+ 
+-from .deprecated import *
++from .deprecated import *
+\ No newline at end of file
+diff --git a/sympy/core/numbers.py b/sympy/core/numbers.py
+index 7bc96e6..38f09cd 100644
+--- a/sympy/core/numbers.py
++++ b/sympy/core/numbers.py
+@@ -1042,7 +1042,7 @@ def __new__(cls, num, dps=None, prec=None, precision=None):
+                 # it's a hexadecimal (coming from a pickled object)
+                 # assume that it is in standard form
+                 num = list(num)
+-                num[1] = long(num[1], 16)
++num[1] = long(num[1], 10)
+                 _mpf_ = tuple(num)
+             else:
+                 if len(num) == 4:
+@@ -3868,4 +3868,4 @@ def sympify_complex(a):
+ from .mul import Mul
+ Mul.identity = One()
+ from .add import Add
+-Add.identity = Zero()
++Add.identity = Zero()
+\ No newline at end of file
+
+
+# Untracked files:
+ M sympy/__init__.py
+ M sympy/core/numbers.py

@@ -1,0 +1,51 @@
+{
+  "task_id": "pylint-dev__pylint-7993",
+  "repository": "pylint-dev/pylint",
+  "base_commit": "e90702074e68e20dc8e5df5013ee3ecf22139c3e",
+  "problem_type": "bug_fix",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "pylint/**/*.py",
+      "tests/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "**/*"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "tests/reporters/unittest_reporting.py::test_template_option_with_header"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "pylint/**/*.py",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

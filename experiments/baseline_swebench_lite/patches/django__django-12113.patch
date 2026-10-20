@@ -1,0 +1,28 @@
+diff --git a/tests/test_sqlite.py b/tests/test_sqlite.py
+index f1b65f7..d09b4a9 100644
+--- a/tests/test_sqlite.py
++++ b/tests/test_sqlite.py
+@@ -15,6 +15,12 @@
+ DATABASES = {
+     'default': {
+         'ENGINE': 'django.db.backends.sqlite3',
++        'TEST': {
++            'NAME': 'test_default.sqlite3'
++        },
++    }
++}
++        'ENGINE': 'django.db.backends.sqlite3',
+     },
+     'other': {
+         'ENGINE': 'django.db.backends.sqlite3',
+@@ -26,4 +32,4 @@ SECRET_KEY = "django_tests_secret_key"
+ # Use a fast hasher to speed up tests.
+ PASSWORD_HASHERS = [
+     'django.contrib.auth.hashers.MD5PasswordHasher',
+-]
++]
+\ No newline at end of file
+
+
+# Untracked files:
+ M tests/test_sqlite.py

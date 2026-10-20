@@ -1,0 +1,52 @@
+{
+  "task_id": "pytest-dev__pytest-5495",
+  "repository": "pytest-dev/pytest",
+  "base_commit": "1aefb24b37c30fba8fd79a744829ca16e252f340",
+  "problem_type": "bug_fix",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "src/_pytest/**/*.py",
+      "testing/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "**/*"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "testing/test_assertion.py::TestAssert_reprcompare::test_bytes_diff_normal",
+      "testing/test_assertion.py::TestAssert_reprcompare::test_bytes_diff_verbose"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "src/_pytest/**/*.py",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

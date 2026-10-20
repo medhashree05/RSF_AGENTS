@@ -1,0 +1,50 @@
+{
+  "task_id": "sphinx-doc__sphinx-10451",
+  "repository": "sphinx-doc/sphinx",
+  "base_commit": "195e911f1dab04b8ddeacbe04b7d214aaf81bb0b",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "sphinx/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "**/*.py"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "tests/test_ext_napoleon_docstring.py::test_napoleon_and_autodoc_typehints_description_all",
+      "tests/test_ext_napoleon_docstring.py::test_napoleon_and_autodoc_typehints_description_documented_params"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "sphinx/...",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

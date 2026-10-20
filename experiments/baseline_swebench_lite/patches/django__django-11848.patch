@@ -1,0 +1,31 @@
+diff --git a/django/utils/http.py b/django/utils/http.py
+index 572cfb4..33c8b1f 100644
+--- a/django/utils/http.py
++++ b/django/utils/http.py
+@@ -1,5 +1,13 @@
+-import base64
+-import calendar
++def parse_http_date(date_str):
++    # ... (rest of the function remains the same)
++    if len(date_str) == 8:
++        year = int(date_str[:2])
++        if year < 70:
++            year += 2000
++        else:
++            year -= 50
++        date_str = date_str[2:] + str(year)
++    # ... (rest of the function remains the same)
+ import datetime
+ import re
+ import unicodedata
+@@ -471,4 +479,4 @@ def escape_leading_slashes(url):
+     """
+     if url.startswith('//'):
+         url = '/%2F{}'.format(url[2:])
+-    return url
++    return url
+\ No newline at end of file
+
+
+# Untracked files:
+ M django/utils/http.py

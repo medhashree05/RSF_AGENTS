@@ -18,7 +18,7 @@ class AgentHistory:
         system_prompt: str,
         task: Task,
         max_turns: int = 50,
-        max_observation_chars: int = 10000,
+        max_observation_chars: int = 2500,
     ):
         self.system_prompt = system_prompt
         self.task = task

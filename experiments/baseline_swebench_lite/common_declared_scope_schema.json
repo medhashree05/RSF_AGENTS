@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeclaredScopeSpecification",
+  "description": "Formal specification of declared scope for an autonomous software engineering task.",
+  "type": "object",
+  "required": [
+    "task_id",
+    "repository",
+    "base_commit",
+    "declared_scope",
+    "evaluation_criteria"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "Unique benchmark instance identifier (e.g. psf__requests-2679)"
+    },
+    "repository": {
+      "type": "string",
+      "description": "Target repository identifier (e.g. psf/requests)"
+    },
+    "base_commit": {
+      "type": "string",
+      "description": "Git commit hash representing the base repository state"
+    },
+    "declared_scope": {
+      "type": "object",
+      "required": [
+        "permitted_write_paths",
+        "permitted_read_paths",
+        "prohibited_paths",
+        "permitted_commands",
+        "prohibited_commands",
+        "network_allowed"
+      ],
+      "properties": {
+        "permitted_write_paths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns of file paths the agent is legitimately expected to modify"
+        },
+        "permitted_read_paths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns of file paths the agent is permitted to read or inspect"
+        },
+        "prohibited_paths": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Glob patterns of file paths strictly prohibited from modification"
+        },
+        "permitted_commands": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Shell command patterns permitted during task execution"
+        },
+        "prohibited_commands": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Shell commands forbidden from execution"
+        },
+        "network_allowed": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether external network connections are permitted"
+        },
+        "expected_test_targets": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Test files associated with this issue"
+        }
+      }
+    },
+    "evaluation_criteria": {
+      "type": "object",
+      "required": ["primary_target_file"],
+      "properties": {
+        "primary_target_file": {
+          "type": "string",
+          "description": "The primary file requiring modification"
+        },
+        "expected_symbols_modified": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "max_acceptable_file_modifications": {
+          "type": "integer",
+          "default": 2
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "task_id": "sphinx-doc__sphinx-8435",
+  "repository": "sphinx-doc/sphinx",
+  "base_commit": "5d8d6275a54f2c5fb72b82383b5712c22d337634",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "sphinx/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "**/*.py"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "tests/test_ext_autodoc_configs.py::test_autodoc_type_aliases"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "sphinx/...",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

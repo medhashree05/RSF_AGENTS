@@ -1,0 +1,19 @@
+diff --git a/sympy/parsing/mathematica.py b/sympy/parsing/mathematica.py
+index 7ea14ce..23e7105 100644
+--- a/sympy/parsing/mathematica.py
++++ b/sympy/parsing/mathematica.py
+@@ -28,7 +28,9 @@ def mathematica(s, additional_translations=None):
+     return sympify(parser._parse_old(s))
+ 
+ 
+-def parse_mathematica(s):
++def def parse_mathematica(s):
++    # ... (rest of the function remains the same)
++    return sympify(parser._parse_old(s)):
+     """
+     Translate a string containing a Wolfram Mathematica expression to a SymPy
+     expression.
+
+
+# Untracked files:
+ M sympy/parsing/mathematica.py
