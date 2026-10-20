@@ -1,0 +1,50 @@
+{
+  "task_id": "pytest-dev__pytest-8365",
+  "repository": "pytest-dev/pytest",
+  "base_commit": "4964b468c83c06971eb743fbc57cc404f760c573",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "_pytest/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "src/_pytest/**/*.py",
+      "testing/**/*.py"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "testing/test_tmpdir.py::test_tmp_path_factory_handles_invalid_dir_characters"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "_pytest/...",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

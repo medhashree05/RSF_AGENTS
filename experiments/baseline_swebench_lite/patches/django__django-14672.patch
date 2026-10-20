@@ -1,0 +1,25 @@
+diff --git a/django/core/checks/model_checks.py b/django/core/checks/model_checks.py
+index 15d9b7f..c63e4d2 100644
+--- a/django/core/checks/model_checks.py
++++ b/django/core/checks/model_checks.py
+@@ -31,8 +31,7 @@ def check_all_models(app_configs=None, **kwargs):
+                 )
+             )
+         else:
+-            errors.extend(model.check(**kwargs))
+-        for model_index in model._meta.indexes:
++self.through_fields = make_hashable(self.through_fields)
+             indexes[model_index.name].append(model._meta.label)
+         for model_constraint in model._meta.constraints:
+             constraints[model_constraint.name].append(model._meta.label)
+@@ -207,4 +206,4 @@ def _check_lazy_references(apps, ignore=None):
+ 
+ @register(Tags.models)
+ def check_lazy_references(app_configs=None, **kwargs):
+-    return _check_lazy_references(apps)
++    return _check_lazy_references(apps)
+\ No newline at end of file
+
+
+# Untracked files:
+ M django/core/checks/model_checks.py

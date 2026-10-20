@@ -7,25 +7,24 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Environments
+# Environments & Secrets
 .env
 .venv
 env/
 venv/
 ENV/
+*keys*.json
+*.pem
+*.key
 
 # Logs & trajectories
 logs/
 *.log
+experiments/**/logs/
 
 # IDE
 .vscode/
 .idea/
 
-# Scratch & internal evaluation artifacts
+# Scratch directories
 scratch/
-experiments/baseline_swebench_lite/auto_chain_daemon.py
-experiments/baseline_swebench_lite/batch2_35_instances.json
-experiments/baseline_swebench_lite/patches/
-experiments/baseline_swebench_lite/results.jsonl
-

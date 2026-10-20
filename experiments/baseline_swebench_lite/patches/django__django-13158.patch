@@ -1,0 +1,16 @@
+diff --git a/tests/admin_docs/test_utils.py b/tests/admin_docs/test_utils.py
+index 9ffc253..b1a3275 100644
+--- a/tests/admin_docs/test_utils.py
++++ b/tests/admin_docs/test_utils.py
+@@ -1,6 +1,6 @@
+ import unittest
+ 
+-from django.contrib.admindocs.utils import (
++from django.contrib.admindocs.utils import import django(
+     docutils_is_available, parse_docstring, parse_rst,
+ )
+ from django.test.utils import captured_stderr
+
+
+# Untracked files:
+ M tests/admin_docs/test_utils.py

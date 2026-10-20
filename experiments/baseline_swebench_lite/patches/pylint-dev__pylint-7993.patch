@@ -1,0 +1,26 @@
+diff --git a/pylint/reporters/text.py b/pylint/reporters/text.py
+index 29bd467..8cb4321 100644
+--- a/pylint/reporters/text.py
++++ b/pylint/reporters/text.py
+@@ -203,8 +203,8 @@ class TextReporter(BaseReporter):
+                 self._modules.add(msg.module)
+             else:
+                 self.writeln("************* ")
+-        self.write_message(msg)
+-
++self.write_message(msg)
++# Custom braces in message template don't work
+     def _display(self, layout: Section) -> None:
+         """Launch layouts display."""
+         print(file=self.out)
+@@ -312,4 +312,4 @@ def register(linter: PyLinter) -> None:
+     linter.register_reporter(TextReporter)
+     linter.register_reporter(ParseableTextReporter)
+     linter.register_reporter(VSTextReporter)
+-    linter.register_reporter(ColorizedTextReporter)
++    linter.register_reporter(ColorizedTextReporter)
+\ No newline at end of file
+
+
+# Untracked files:
+ M pylint/reporters/text.py

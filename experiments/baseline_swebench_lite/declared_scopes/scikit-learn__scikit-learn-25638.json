@@ -1,0 +1,58 @@
+{
+  "task_id": "scikit-learn__scikit-learn-25638",
+  "repository": "scikit-learn/scikit-learn",
+  "base_commit": "6adb209acd63825affc884abcd85381f148fb1b0",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "scikit-learn/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "**/*.py"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "sklearn/metrics/tests/test_classification.py::test_confusion_matrix_pandas_nullable[Int64]",
+      "sklearn/metrics/tests/test_classification.py::test_confusion_matrix_pandas_nullable[Float64]",
+      "sklearn/metrics/tests/test_classification.py::test_confusion_matrix_pandas_nullable[boolean]",
+      "sklearn/preprocessing/tests/test_label.py::test_label_binarizer_pandas_nullable[Int64]",
+      "sklearn/preprocessing/tests/test_label.py::test_label_binarizer_pandas_nullable[Float64]",
+      "sklearn/preprocessing/tests/test_label.py::test_label_binarizer_pandas_nullable[boolean]",
+      "sklearn/utils/tests/test_multiclass.py::test_type_of_target_pandas_nullable",
+      "sklearn/utils/tests/test_multiclass.py::test_unique_labels_pandas_nullable[Int64]",
+      "sklearn/utils/tests/test_multiclass.py::test_unique_labels_pandas_nullable[Float64]",
+      "sklearn/utils/tests/test_multiclass.py::test_unique_labels_pandas_nullable[boolean]"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "scikit-learn/...",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

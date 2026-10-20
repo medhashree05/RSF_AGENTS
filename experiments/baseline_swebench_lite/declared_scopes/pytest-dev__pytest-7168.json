@@ -1,0 +1,60 @@
+{
+  "task_id": "pytest-dev__pytest-7168",
+  "repository": "pytest-dev/pytest",
+  "base_commit": "4787fd64a4ca0dba5528b5651bddd254102fe9f3",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "_pytest/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "src/_pytest/**/*.py",
+      "testing/**/*.py"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "testing/io/test_saferepr.py::test_simple_repr",
+      "testing/io/test_saferepr.py::test_maxsize",
+      "testing/io/test_saferepr.py::test_maxsize_error_on_instance",
+      "testing/io/test_saferepr.py::test_exceptions",
+      "testing/io/test_saferepr.py::test_baseexception",
+      "testing/io/test_saferepr.py::test_buggy_builtin_repr",
+      "testing/io/test_saferepr.py::test_big_repr",
+      "testing/io/test_saferepr.py::test_repr_on_newstyle",
+      "testing/io/test_saferepr.py::test_unicode",
+      "testing/io/test_saferepr.py::test_pformat_dispatch",
+      "testing/io/test_saferepr.py::test_broken_getattribute"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "_pytest/...",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

@@ -1,0 +1,20 @@
+diff --git a/django/contrib/staticfiles/handlers.py b/django/contrib/staticfiles/handlers.py
+index 711d886..58ea448 100644
+--- a/django/contrib/staticfiles/handlers.py
++++ b/django/contrib/staticfiles/handlers.py
+@@ -83,6 +83,6 @@ class ASGIStaticFilesHandler(StaticFilesHandlerMixin, ASGIHandler):
+         if scope['type'] == 'http' and self._should_handle(scope['path']):
+             # Serve static content
+             # (the one thing super() doesn't do is __call__, apparently)
+-            return await super().__call__(scope, receive, send)
+-        # Hand off to the main app
+-        return await self.application(scope, receive, send)
++async def get_response_async(self, request):
++    return await super().get_response_async(request)
++        return await self.application(scope, receive, send)
+\ No newline at end of file
+
+
+# Untracked files:
+ M django/contrib/staticfiles/handlers.py
+?? usr/

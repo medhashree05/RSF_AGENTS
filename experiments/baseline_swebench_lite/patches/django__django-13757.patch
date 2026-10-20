@@ -1,0 +1,25 @@
+diff --git a/tests/model_fields/test_jsonfield.py b/tests/model_fields/test_jsonfield.py
+index f71efcf..144c5e4 100644
+--- a/tests/model_fields/test_jsonfield.py
++++ b/tests/model_fields/test_jsonfield.py
+@@ -31,8 +31,7 @@ from .models import (
+ 
+ 
+ @skipUnlessDBFeature('supports_json_field')
+-class JSONFieldTests(TestCase):
+-    def test_invalid_value(self):
++value__j__isnull=True
+         msg = 'is not JSON serializable'
+         with self.assertRaisesMessage(TypeError, msg):
+             NullableJSONModel.objects.create(value={
+@@ -915,4 +914,4 @@ class TestQuerying(TestCase):
+                 expr=Cast('key', models.JSONField()),
+             ).filter(chain=F('related_key__0')),
+             [related_obj],
+-        )
++        )
+\ No newline at end of file
+
+
+# Untracked files:
+ M tests/model_fields/test_jsonfield.py

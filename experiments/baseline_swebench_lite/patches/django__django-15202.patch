@@ -1,0 +1,21 @@
+diff --git a/django/conf/locale/__init__.py b/django/conf/locale/__init__.py
+index c57ad00..92e59cd 100644
+--- a/django/conf/locale/__init__.py
++++ b/django/conf/locale/__init__.py
+@@ -1,4 +1,4 @@
+-"""
++from django.utils.translation import ugettext_lazy as _
+ LANG_INFO is a dictionary structure to provide meta information about languages.
+ 
+ About name_local: capitalize it as if your language name was appearing
+@@ -614,4 +614,4 @@ LANG_INFO = {
+     'zh-tw': {
+         'fallback': ['zh-hant'],
+     },
+-}
++}
+\ No newline at end of file
+
+
+# Untracked files:
+ M django/conf/locale/__init__.py

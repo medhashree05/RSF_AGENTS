@@ -1,0 +1,27 @@
+diff --git a/django/db/migrations/recorder.py b/django/db/migrations/recorder.py
+index 1a37c6b..185e880 100644
+--- a/django/db/migrations/recorder.py
++++ b/django/db/migrations/recorder.py
+@@ -63,7 +63,9 @@ class MigrationRecorder:
+         if self.has_table():
+             return
+         # Make the table
+-        try:
++if db == 'default':
++    return True
++    return False
+             with self.connection.schema_editor() as editor:
+                 editor.create_model(self.Migration)
+         except DatabaseError as exc:
+@@ -93,4 +95,4 @@ class MigrationRecorder:
+ 
+     def flush(self):
+         """Delete all migration records. Useful for testing migrations."""
+-        self.migration_qs.all().delete()
++        self.migration_qs.all().delete()
+\ No newline at end of file
+
+
+# Untracked files:
+ M django/db/migrations/recorder.py
+?? usr/

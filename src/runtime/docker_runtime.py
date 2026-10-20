@@ -124,8 +124,10 @@ class DockerRuntime:
             raise RuntimeError("DockerRuntime container is not running. Call start() first.")
 
         start_time = time.time()
+        timeout_sec = int(timeout or 120)
+        safe_cmd = f"timeout {timeout_sec}s /bin/bash -c {command!r}"
         exec_res = self.container.exec_run(
-            ["/bin/bash", "-c", command],
+            ["/bin/bash", "-c", safe_cmd],
             workdir=self.workspace_dir,
             demux=True
         )

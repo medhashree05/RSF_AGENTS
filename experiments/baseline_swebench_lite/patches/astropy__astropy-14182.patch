@@ -1,0 +1,17 @@
+diff --git a/astropy/io/ascii/ui.py b/astropy/io/ascii/ui.py
+index 993dacf..03abd73 100644
+--- a/astropy/io/ascii/ui.py
++++ b/astropy/io/ascii/ui.py
+@@ -105,6 +105,8 @@ def _probably_html(table, maxchars=100000):
+ 
+ 
+ def set_guess(guess):
++    global _GUESS
++    _GUESS = guess
+     """
+     Set the default value of the ``guess`` parameter for read()
+ 
+
+
+# Untracked files:
+ M astropy/io/ascii/ui.py

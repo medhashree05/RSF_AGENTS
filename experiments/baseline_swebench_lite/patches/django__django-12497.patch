@@ -1,0 +1,13 @@
+diff --git a/tests/admin_autodiscover/models.py b/tests/admin_autodiscover/models.py
+index a093db4..68cad75 100644
+--- a/tests/admin_autodiscover/models.py
++++ b/tests/admin_autodiscover/models.py
+@@ -3,3 +3,4 @@ from django.db import models
+ 
+ class Story(models.Model):
+     title = models.CharField(max_length=10)
++    story_type = models.CharField(max_length=10)
+
+
+# Untracked files:
+ M tests/admin_autodiscover/models.py

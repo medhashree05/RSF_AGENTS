@@ -22,7 +22,7 @@ import docker
 
 from src.agent.agent import CodingAgent
 from src.agent.config import AgentConfig
-from src.agent.llm import OpenAILikeProvider, MockLLMProvider
+from src.agent.llm import OpenAILikeProvider, MockLLMProvider, GeminiNativeProvider
 from src.agent.models import Task, AgentResult
 from src.runtime.docker_runtime import DockerRuntime
 
@@ -231,7 +231,7 @@ def main():
     parser.add_argument("--max-steps", type=int, default=15, help="Maximum interaction steps per task")
     parser.add_argument("--model", type=str, default="gemini-3.8-flash", help="LLM model name")
     parser.add_argument("--instances-file", type=str, default=None, help="Custom path to instances JSON")
-    parser.add_argument("--provider", type=str, choices=["gemini", "ollama", "mock"], default="gemini", help="LLM provider")
+    parser.add_argument("--provider", type=str, choices=["gemini", "ollama", "groq", "mock"], default="gemini", help="LLM provider")
     args = parser.parse_args()
 
     instances = load_instances(args.instances_file)
@@ -254,12 +254,21 @@ def main():
 
     # Initialize Provider
     if args.provider == "gemini":
-        llm = OpenAILikeProvider(
-            model_name=args.model,
+        model_name = args.model if args.model not in ("qwen/qwen3.8-27b", "llama3.2:3b") else "gemini-3.5-flash"
+        llm = GeminiNativeProvider(
+            model_name=model_name,
             api_key_env_var="GEMINI_API_KEY",
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-            timeout=120.0,
-            min_interval=4.5,
+            timeout=60.0,
+            min_interval=1.0,
+        )
+    elif args.provider == "groq":
+        model_name = args.model if args.model not in ("gemini-3.8-flash", "llama3.2:3b") else "qwen/qwen3.8-27b"
+        llm = OpenAILikeProvider(
+            model_name=model_name,
+            api_key_env_var="GROQ_API_KEY",
+            base_url="https://api.groq.com/openai/v1/chat/completions",
+            timeout=60.0,
+            min_interval=2.0,
         )
     elif args.provider == "ollama":
         os.environ.setdefault("OLLAMA_API_KEY", "ollama")

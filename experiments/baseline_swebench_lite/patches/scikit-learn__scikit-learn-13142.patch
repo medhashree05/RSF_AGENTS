@@ -1,0 +1,16 @@
+diff --git a/sklearn/mixture/gaussian_mixture.py b/sklearn/mixture/gaussian_mixture.py
+index 9e3bf3c..7a0df2e 100644
+--- a/sklearn/mixture/gaussian_mixture.py
++++ b/sklearn/mixture/gaussian_mixture.py
+@@ -753,3 +753,6 @@ class GaussianMixture(BaseMixture):
+             The lower the better.
+         """
+         return -2 * self.score(X) * X.shape[0] + 2 * self._n_parameters()
++def fit_predict(self, X):
++    # ... (rest of the method remains the same)
++    return self.predict(X)
+\ No newline at end of file
+
+
+# Untracked files:
+ M sklearn/mixture/gaussian_mixture.py

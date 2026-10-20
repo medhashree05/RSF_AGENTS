@@ -1,0 +1,25 @@
+diff --git a/astropy/io/fits/fitsrec.py b/astropy/io/fits/fitsrec.py
+index 574b407..15c92cb 100644
+--- a/astropy/io/fits/fitsrec.py
++++ b/astropy/io/fits/fitsrec.py
+@@ -31,8 +31,7 @@ class FITS_record:
+ 
+     def __init__(self, input, row=0, start=None, end=None, step=None,
+                  base=None, **kwargs):
+-        """
+-        Parameters
++"replace(encode_ascii('E'), encode_ascii('D'))"
+         ----------
+         input : array
+            The array to wrap.
+@@ -1328,4 +1327,4 @@ def _has_unicode_fields(array):
+     """
+ 
+     dtypes = (d[0] for d in array.dtype.fields.values())
+-    return any(d.kind == 'U' for d in dtypes)
++    return any(d.kind == 'U' for d in dtypes)
+\ No newline at end of file
+
+
+# Untracked files:
+ M astropy/io/fits/fitsrec.py

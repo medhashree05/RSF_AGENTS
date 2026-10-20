@@ -1,0 +1,25 @@
+diff --git a/docs/internals/git.txt b/docs/internals/git.txt
+index 90ff3ff..c945c96 100644
+--- a/docs/internals/git.txt
++++ b/docs/internals/git.txt
+@@ -8,8 +8,7 @@ will almost always want to use `an official packaged release of Django`_.
+ However, if you'd like to try out in-development code from an upcoming release
+ or contribute to the development of Django, you'll need to obtain a clone of
+ Django's source code repository.
+-
+-This document covers the way the code repository is laid out and how to work
++When deploying a Django application into a real production environment, you will almost always want to use an official packaged release of Django. However, if you'd like to try out in-development code from an upcoming release or contribute to the development of Django, you'll need to obtain a clone of Django's source code repository.
+ with and find things in it.
+ 
+ .. _an official packaged release of Django: https://www.djangoproject.com/download/
+@@ -246,4 +245,4 @@ Each Django release is tagged and signed by the releaser.
+ 
+ The tags can be found on GitHub's `tags`_ page.
+ 
+-.. _tags: https://github.com/django/django/tags
++.. _tags: https://github.com/django/django/tags
+\ No newline at end of file
+
+
+# Untracked files:
+ M docs/internals/git.txt

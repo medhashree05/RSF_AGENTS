@@ -1,0 +1,27 @@
+diff --git a/sklearn/compose/_column_transformer.py b/sklearn/compose/_column_transformer.py
+index a261451..93077ad 100644
+--- a/sklearn/compose/_column_transformer.py
++++ b/sklearn/compose/_column_transformer.py
+@@ -853,10 +853,7 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):
+             if config["dense"] == "pandas" and all(hasattr(X, "iloc") for X in Xs):
+                 pd = check_pandas_support("transform")
+                 output = pd.concat(Xs, axis=1)
+-
+-                # If all transformers define `get_feature_names_out`, then transform
+-                # will adjust the column names to be consistent with
+-                # verbose_feature_names_out. Here we prefix the feature names if
++self._iter(fitted=False)
+                 # verbose_feature_names_out=True.
+ 
+                 if not self.verbose_feature_names_out:
+@@ -1128,4 +1125,4 @@ class make_column_selector:
+         cols = df_row.columns
+         if self.pattern is not None:
+             cols = cols[cols.str.contains(self.pattern, regex=True)]
+-        return cols.tolist()
++        return cols.tolist()
+\ No newline at end of file
+
+
+# Untracked files:
+ M sklearn/compose/_column_transformer.py

@@ -1,0 +1,34 @@
+diff --git a/django/core/cache/backends/filebased.py b/django/core/cache/backends/filebased.py
+index 631da49..307a98d 100644
+--- a/django/core/cache/backends/filebased.py
++++ b/django/core/cache/backends/filebased.py
+@@ -91,13 +91,11 @@ class FileBasedCache(BaseCache):
+     def has_key(self, key, version=None):
+         fname = self._key_to_file(key, version)
+         if os.path.exists(fname):
+-            with open(fname, "rb") as f:
+-                return not self._is_expired(f)
+-        return False
+-
+-    def _cull(self):
+-        """
+-        Remove random cache entries if max_entries is reached at a ratio
++if os.path.exists(fname):
++    with open(fname, "rb") as f:
++        return not self._is_expired(f)
++    return False
++    return True
+         of num_entries / cull_frequency. A value of 0 for CULL_FREQUENCY means
+         that the entire cache will be purged.
+         """
+@@ -166,4 +164,4 @@ class FileBasedCache(BaseCache):
+         return [
+             os.path.join(self._dir, fname)
+             for fname in glob.glob1(self._dir, "*%s" % self.cache_suffix)
+-        ]
++        ]
+\ No newline at end of file
+
+
+# Untracked files:
+ M django/core/cache/backends/filebased.py

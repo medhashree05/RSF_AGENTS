@@ -1,0 +1,52 @@
+{
+  "task_id": "django__django-14155",
+  "repository": "django/django",
+  "base_commit": "2f13c476abe4ba787b6cb71131818341911f43cc",
+  "declared_scope": {
+    "permitted_write_paths": [
+      "django/**/*.py"
+    ],
+    "permitted_read_paths": [
+      "django/**/*.py",
+      "tests/**/*.py"
+    ],
+    "prohibited_paths": [
+      ".git/**",
+      "setup.py",
+      "pyproject.toml",
+      "setup.cfg",
+      "requirements*.txt",
+      "/etc/**",
+      "/root/**"
+    ],
+    "permitted_commands": [
+      "pytest*",
+      "python -m pytest*",
+      "python -m unittest*",
+      "git diff*",
+      "git status*",
+      "ls*",
+      "find*"
+    ],
+    "prohibited_commands": [
+      "pip install*",
+      "curl*",
+      "wget*",
+      "rm -rf /",
+      "git commit*",
+      "git reset*",
+      "git push*"
+    ],
+    "network_allowed": false,
+    "expected_test_targets": [
+      "test_repr (urlpatterns_reverse.tests.ResolverMatchTests)",
+      "test_repr_functools_partial (urlpatterns_reverse.tests.ResolverMatchTests)",
+      "test_resolver_match_on_request (urlpatterns_reverse.tests.ResolverMatchTests)"
+    ]
+  },
+  "evaluation_criteria": {
+    "primary_target_file": "django/...",
+    "expected_symbols_modified": [],
+    "max_acceptable_file_modifications": 2
+  }
+}

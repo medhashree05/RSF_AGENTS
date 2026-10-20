@@ -1,0 +1,36 @@
+diff --git a/astropy/wcs/wcs.py b/astropy/wcs/wcs.py
+index d3a06f2..b808adb 100644
+--- a/astropy/wcs/wcs.py
++++ b/astropy/wcs/wcs.py
+@@ -1350,8 +1350,18 @@ reduce these to 2 dimensions using the naxis kwarg.
+         if self.wcs is None:
+             raise ValueError("No basic WCS settings were created.")
+         return self._array_converter(
+-            lambda xy, o: self.wcs.p2s(xy, o)['world'],
+-            'output', *args, **kwargs)
++def wcs_pix2world(self, *args, **kwargs):
++    if not self.wcs.p2s(*args, **kwargs):
++        return [], [], 0
++    return self._array_converter(lambda xy, o: self.wcs.p2s(xy, o)['world'], 'output', {'xy': [], 'o': []}, **kwargs)
++        return [], [], 0
++    return self._array_converter(lambda xy, o: self.wcs.p2s(xy, o)['world'], 'output', {'xy': [], 'o': []}, **kwargs)
++        return [], [], 0
++    return self._array_converter(lambda xy, o: self.wcs.p2s(xy, o)['world'], 'output', {'xy': [], 'o': []}, **kwargs)
++        return [], [], 0
++    return self._array_converter(lambda xy, o: self.wcs.p2s(xy, o)['world'], 'output', *args, **kwargs)
++        return [], [], 0
++    return self._array_converter(lambda xy, o: self.wcs.p2s(xy, o)['world'], 'output', *args, **kwargs)
+     wcs_pix2world.__doc__ = """
+         Transforms pixel coordinates to world coordinates by doing
+         only the basic `wcslib`_ transformation.
+@@ -3296,4 +3306,4 @@ def validate(source):
+ 
+                 wcs_results.extend([str(x.message) for x in warning_lines])
+ 
+-    return results
++    return results
+\ No newline at end of file
+
+
+# Untracked files:
+ M astropy/wcs/wcs.py

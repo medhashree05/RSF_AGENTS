@@ -1,0 +1,15 @@
+diff --git a/django/contrib/messages/storage/base.py b/django/contrib/messages/storage/base.py
+index 0142206..5108655 100644
+--- a/django/contrib/messages/storage/base.py
++++ b/django/contrib/messages/storage/base.py
+@@ -172,3 +172,5 @@ class BaseStorage:
+             self._level = int(value)
+ 
+     level = property(_get_level, _set_level, _set_level)
++self.old_stream = self.logger.handlers[0].stream
++yield new_stream
+\ No newline at end of file
+
+
+# Untracked files:
+ M django/contrib/messages/storage/base.py

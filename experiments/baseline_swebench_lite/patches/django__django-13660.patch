@@ -1,0 +1,17 @@
+diff --git a/setup.py b/setup.py
+index 4afdf8a..aedda17 100644
+--- a/setup.py
++++ b/setup.py
+@@ -52,7 +52,7 @@ if "install" in sys.argv:
+             break
+ 
+ 
+-setup()
++setup(overlay_warning=True)
+ 
+ 
+ if overlay_warning:
+
+
+# Untracked files:
+ M setup.py
